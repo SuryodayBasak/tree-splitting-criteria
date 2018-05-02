@@ -13,7 +13,7 @@ def purity (prob, el):
         #print(prob[key])
         index = index + (prob[key]**el[key])
 
-    return index
+    return 0.5*(1 - index)
 
 
 def find_prob(df, cls_lbl):
@@ -56,7 +56,7 @@ def check_purity(prob_dict):
     return purity_flag
 
 
-def build_tree (df, cls_lbl, el):
+def build_tree (df, cls_lbl, el, lvl, name = "just-a-node"):
     #global nodes_idx
     max_split_purity = -999
     op_left = None
@@ -73,7 +73,11 @@ def build_tree (df, cls_lbl, el):
     #Check if this is a pure node
     if check_purity(p_classes) == 1:
         print("Reached a pure node")
-        node = Node("Some crap.")
+        for key, items in p_classes.items():
+            leaf_class = key
+        #print(p_classes)
+        #print(leaf_class)
+        node = Node(name + " leaf -lvl-" + str(lvl), cls = leaf_class)
         return node
 
     else:
@@ -100,7 +104,8 @@ def build_tree (df, cls_lbl, el):
                 purity_left = purity(prob_left, el)
                 purity_right = purity(prob_right, el)
 
-                split_purity = 1 - purity_left - purity_right
+                #split_purity = 1 - purity_left - purity_right
+                split_purity = node_purity - purity_left - purity_right
                 if (split_purity > max_split_purity):
                     max_split_purity = split_purity
                     op_left = df[:partition_idx].copy()
@@ -109,21 +114,19 @@ def build_tree (df, cls_lbl, el):
 
             print(max_split_purity, "Done with ", feature)
 
+        #Finding feature threshold
+        split_thresh = max(op_left[feature])
+
         #Recursively moving ahead
         print ('-----')
+        node = Node(name + '-lvl-' + str(lvl),
+                    feat = feature, thresh = split_thresh)
         print("Building left child node.")
-        left_chld = build_tree(op_left, cls_lbl, el)
-        print("Building right child node.")
-        right_chld = build_tree(op_right, cls_lbl, el)
-
-        print('Left child = ', left_chld)
-        print('Right child = ', right_chld)
-        node = Node("Udo")
+        left_chld = build_tree(op_left, cls_lbl, el, lvl+1, 'left')
         left_chld.parent = node
+
+        print("Building right child node.")
+        right_chld = build_tree(op_right, cls_lbl, el, lvl+1, 'right')
         right_chld.parent = node
-        print("This node = ", node)
-        print('Left PARENT = ', left_chld.parent)
-        print('Right PARENT = ', right_chld.parent)
-        print(node)
+
         return node
-        #print(feat_order)
