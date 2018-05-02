@@ -7,10 +7,10 @@ def purity (prob, el):
         print("The dimensions of p and el are unequal. Aborting.")
         return 0
     """
-
     index = 0
     for key, val in prob.items():
         #print(prob[key])
+        #print(key)
         index = index + (prob[key]**el[key])
 
     return 0.5*(1 - index)
@@ -97,6 +97,8 @@ def build_tree (df, cls_lbl, el, lvl, name = "just-a-node"):
             for partition_idx in range(1, len(feat_order)):
                 left_part = feat_order[:partition_idx]
                 right_part = feat_order[partition_idx:]
+                #left_part = df[:partition_idx]
+                #right_part = df[partition_idx:]
 
                 prob_left = find_prob_part(left_part, cls_lbl)
                 prob_right = find_prob_part(right_part, cls_lbl)
@@ -110,17 +112,20 @@ def build_tree (df, cls_lbl, el, lvl, name = "just-a-node"):
                     max_split_purity = split_purity
                     op_left = df[:partition_idx].copy()
                     op_right = df[partition_idx:].copy()
+                    #print(op_right)
                     best_feature = feature
 
-            print(max_split_purity, "Done with ", feature)
+            print(max_split_purity, "Done with ", feature,
+                        "| Best feat = ", best_feature)
 
         #Finding feature threshold
-        split_thresh = max(op_left[feature])
+        #split_thresh = max(op_left[feature])
+        split_thresh = min(op_right[best_feature])
 
         #Recursively moving ahead
         print ('-----')
         node = Node(name + '-lvl-' + str(lvl),
-                    feat = feature, thresh = split_thresh)
+                    feat = best_feature, thresh = split_thresh)
         print("Building left child node.")
         left_chld = build_tree(op_left, cls_lbl, el, lvl+1, 'left')
         left_chld.parent = node
