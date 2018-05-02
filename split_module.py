@@ -68,20 +68,20 @@ def build_tree (df, cls_lbl, el, lvl, name = "just-a-node"):
 
     #Finding node purity
     node_purity = purity(p_classes, el)
-    print(node_purity)
+    #print(node_purity)
 
     #Check if this is a pure node
     if check_purity(p_classes) == 1:
-        print("Reached a pure node")
+        #print("Reached a pure node")
         for key, items in p_classes.items():
             leaf_class = key
         #print(p_classes)
         #print(leaf_class)
-        node = Node(name + " leaf -lvl-" + str(lvl), cls = leaf_class)
+        node = Node(name + "-leaf-lvl-" + str(lvl), cls = leaf_class)
         return node
 
     else:
-        print("Node is impure")
+        #print("Node is impure")
 
         #Get the feature names
         feature_names = list(df.columns)
@@ -115,22 +115,22 @@ def build_tree (df, cls_lbl, el, lvl, name = "just-a-node"):
                     #print(op_right)
                     best_feature = feature
 
-            print(max_split_purity, "Done with ", feature,
-                        "| Best feat = ", best_feature)
+            #print(max_split_purity, "Done with ", feature,
+            #            "| Best feat = ", best_feature)
 
         #Finding feature threshold
         #split_thresh = max(op_left[feature])
         split_thresh = min(op_right[best_feature])
 
         #Recursively moving ahead
-        print ('-----')
+        #print ('-----')
         node = Node(name + '-lvl-' + str(lvl),
                     feat = best_feature, thresh = split_thresh)
-        print("Building left child node.")
+        #print("Building left child node.")
         left_chld = build_tree(op_left, cls_lbl, el, lvl+1, 'left')
         left_chld.parent = node
 
-        print("Building right child node.")
+        #print("Building right child node.")
         right_chld = build_tree(op_right, cls_lbl, el, lvl+1, 'right')
         right_chld.parent = node
 
