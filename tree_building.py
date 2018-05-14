@@ -6,14 +6,22 @@ import split_module
 import json
 
 #cols = ['hab_lbl', 'P. Composition Class', 'P. Min Mass (EU)', 'P. Mass (EU)', 'P. Radius (EU)']
+cols = ['hab_lbl', 'P. Mass (EU)', 'P. Radius (EU)']
 #df = pd.read_csv('dataset.csv', usecols=cols)
 
-for i in range (1, 21):
+conf_mat = np.zeros((3, 3))
+
+for i in range (1, 10):
     df = pd.read_csv('dataset.csv')
-    df = df.drop(df.query('hab_lbl == 0').sample(frac=.95).index)
+    #df = pd.read_csv('dataset.csv', usecols=cols)
+    df = df.drop(df.query('hab_lbl == 0').sample(frac=.5).index)
 
     #Splitting into training and test sets
-    train_test_split = np.random.rand(len(df)) < 0.8
+    #train_test_split = np.random.rand(len(df)) < 0.8
+    mask_0 = np.random.rand(len(df.loc[df['hab_lbl'] == 0])) < 0.8
+    mask_1 = np.random.rand(len(df.loc[df['hab_lbl'] == 1])) < 0.8
+    mask_2 = np.random.rand(len(df.loc[df['hab_lbl'] == 2])) < 0.8
+    train_test_split = np.concatenate((mask_0, mask_1, mask_2), axis = 0)
     train = df[train_test_split]
     test = df[~train_test_split]
     #print(train)
@@ -22,7 +30,7 @@ for i in range (1, 21):
     idx = 0
     name = 'root'
     root = split_module.build_tree(train, 'hab_lbl',
-                                    {0:1.01, 1:25, 2:25}, 0, name)
+                                    {0:8, 1:3, 2:11}, 0, name)
 
     print("----------------------------")
     print("TREE: " + str(i))
@@ -51,7 +59,7 @@ for i in range (1, 21):
     count = 0
     for index, row in test.iterrows():
         count = count + 1
-        print("CLASSIFYING SAMPLE: ", count)
+        #print("CLASSIFYING SAMPLE: ", count)
         #print(row['P. Zone Class'])
         #Tree traversal for classifying test samples
         current_node = json_dict
@@ -60,6 +68,7 @@ for i in range (1, 21):
             if 'leaf' in current_node['name']:
                 print("True Class = ", row['hab_lbl'],
                         "Predicted Class = ", current_node['cls'])
+                conf_mat[int(row['hab_lbl']), int(current_node['cls'])] += 1
                 break
 
             else:
@@ -79,14 +88,22 @@ for i in range (1, 21):
                     else:
                         current_node = current_node['children'][1]
 
-            #print(current_node['children'])
-            #print(current_node['children'][0])
-            #print('')
-            #print(current_node['children'][1])
+#Generating final confusion matrix
+r, c = np.shape(conf_mat)
+for i in range(r):
+    r_sum = sum(conf_mat[i,:])
+    for j in range(c):
+        conf_mat[i, j] = (conf_mat[i, j]/r_sum) * 100
 
-    #print(datastore)
-    #json.loads(json_raw)
-    #Tree traversal
-    #current_node = root
-    #while 'leaf' not in current_node:
-    #print(json_tree['children'])
+print(conf_mat)
+#print(current_node['children'])
+#print(current_node['children'][0])
+#print('')
+#print(current_node['children'][1])
+
+#print(datastore)
+#json.loads(json_raw)
+#Tree traversal
+#current_node = root
+#while 'leaf' not in current_node:
+#print(json_tree['children'])
